@@ -1,4 +1,4 @@
-package sa.riyadh.screen;
+package sa.se.mawaqit;
 import android.app.Activity;
 import android.media.AudioManager;
 import android.os.Bundle;

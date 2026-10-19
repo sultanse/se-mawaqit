@@ -1,4 +1,4 @@
-package sa.riyadh.screen;
+package sa.se.mawaqit;
 import android.service.dreams.DreamService;
 
 /** The dashboard as the TV screensaver. Chosen from the app (OK button), see ScreenSaver. */

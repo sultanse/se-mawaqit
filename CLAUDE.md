@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-مواقيت — an Android TV app (package `sa.riyadh.screen`) that shows a full-screen dashboard for a Saudi city: clock, Gregorian and Hijri date, weather, a rotating Quran verse, and prayer times with a countdown to the next prayer. The UI is Arabic and RTL.
+مواقيت — an Android TV app (package `sa.se.mawaqit`) that shows a full-screen dashboard for a Saudi city: clock, Gregorian and Hijri date, weather, a rotating Quran verse, and prayer times with a countdown to the next prayer. The UI is Arabic and RTL.
 
 ## Build / run
 
@@ -19,7 +19,7 @@ This folder holds only the editable sources. There is no Gradle project, build s
 
 Two layers, joined by a one-way JavaScript bridge (Java → JS only):
 
-- **Java shell** (`src/sa/riyadh/screen/`).
+- **Java shell** (`src/sa/se/mawaqit/`).
   - `Preview` is the launcher activity (in both `LEANBACK_LAUNCHER` and `LAUNCHER`). It goes immersive full-screen, hosts `Dashboard`, and owns the remote keys.
   - `Dream` (a `DreamService`) hosts the same `Dashboard` as the TV screensaver, non-interactive.
   - `Dashboard` owns the `WebView`, loads `file:///android_asset/index.html?<city.query()>`, and **does all network I/O** on a single-thread executor. The page never fetches anything itself.
@@ -90,6 +90,6 @@ Every successful response is saved in `SharedPreferences("cache")` under its `ki
 
 - `minSdkVersion 23`, `targetSdkVersion 36`. The external build config must use `compileSdk` ≥ 36. If it is Gradle-based, its `targetSdk` overrides the one in the manifest. The Java uses lambdas and try-with-resources, so it needs Java 8 source level. The permissions are:
   - `INTERNET`. `usesCleartextTraffic="false"`, so every endpoint must be HTTPS.
-  - `WRITE_SECURE_SETTINGS`. It can't be granted at install time, so grant it once per device with `adb shell pm grant sa.riyadh.screen android.permission.WRITE_SECURE_SETTINGS`. The grant survives app updates. Without it, choosing a screensaver just shows a toast asking for the grant.
+  - `WRITE_SECURE_SETTINGS`. It can't be granted at install time, so grant it once per device with `adb shell pm grant sa.se.mawaqit android.permission.WRITE_SECURE_SETTINGS`. The grant survives app updates. Without it, choosing a screensaver just shows a toast asking for the grant.
 - The WebView has JavaScript and file access enabled and content access disabled. There is no `addJavascriptInterface`, so JS cannot call into Java. Anything interactive (like the menu) has to be driven from Java through `evaluateJavascript`.
 - UI text is Arabic. Numbers stay in Latin digits on purpose (the `-nu-latn` locale extension; `ar()` returns `String(n)` unchanged). Time strings are built with `direction: ltr` inside the RTL layout, and `formatTime(value, true)` puts the ص/م period marker first in the markup. Its containers (`.clock`, `.prayer > .num`) must stay flex. As plain inline text, the bidi algorithm moves the Arabic marker to the right of the digits.
