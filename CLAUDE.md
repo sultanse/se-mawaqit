@@ -20,7 +20,7 @@ This folder holds only the editable sources. There is no Gradle project, build s
 Two layers, joined by a one-way JavaScript bridge:
 
 - **Java shell** (`src/sa/riyadh/screen/`). `Preview` is the launcher activity (it appears in both `LEANBACK_LAUNCHER` and `LAUNCHER`). It goes immersive full-screen and hosts `Dashboard`. `Dashboard` owns the `WebView`, loads `file:///android_asset/index.html`, and **does all network I/O** on a single-thread executor. The page never fetches anything itself.
-- **Web UI** (`assets/index.html`). A single self-contained file: inline CSS, an inline SVG Riyadh skyline (Kingdom Centre and Al Faisaliah), and a plain ES5-style script, with no external resources or fonts. The layout has two parts. On the right are the city, the clock, the dates, the weather, and a `#status` line that shows only when there's a problem. On the left is a glass panel (`#prayers`) listing the five prayers vertically, with Sunrise (الشروق) as a smaller `.minor` row between Fajr and Dhuhr. The next entry, which can be Sunrise, is highlighted with the remaining time from `remainingText()`. The page renders the clock and re-renders the prayer list every second.
+- **Web UI** (`assets/index.html`). A single self-contained file: inline CSS, an inline SVG Riyadh skyline (Kingdom Centre and Al Faisaliah), and a plain ES5-style script, with no external resources or fonts. The layout has two parts. On the right is a fixed-width (46vw) column. It has a `.head` row with the city and the weather to its left, then the clock, the dates, a glass verse card (`#ayah`), and a `#status` line that shows only when there's a problem. On the left is a glass panel (`#prayers`) listing the five prayers vertically, with Sunrise (الشروق) as a row between Fajr and Dhuhr, styled the same as the others. The next entry, which can be Sunrise, is highlighted with the remaining time from `remainingText()`. The page renders the clock and re-renders the prayer list every second.
 
 ### Bridge contract (Java → JS)
 
@@ -55,6 +55,13 @@ Every successful response is saved in `SharedPreferences("cache")` under its `ki
   - `night`: the rest
 
   The boundaries come from today's Aladhan `Fajr`/`Sunrise`/`Sunset`. If those aren't loaded yet, they fall back to `solarTimes()`, with Fajr taken as sunrise − 80 min.
+- **Verses (`VERSES`, `renderAyah()`).** There are 58 short verses, stored verbatim from the Quranpedia.net dump (version 2026-10-19), which is the Hafs Uthmani text of the King Fahd Complex edition.
+  - Every verse was checked letter for letter against Tanzil.
+  - Don't edit the text, and don't add verses without the same check. The two sources use different Unicode for the marks, for example sukun is `U+06E1` versus `U+0652`, so compare letters, not raw strings.
+  - Quranpedia's licence needs no on-screen attribution for use inside an app.
+  - The verse index is `floor(Date.now() / 2 min) % length`, so the list advances every two minutes in order and survives restarts.
+  - There are no ﴿ ﴾ brackets, because the TV's Noto font draws them as plain braces.
+- `<body class="boot">` disables every transition until a second after load, so the app opens in the correct phase instead of fading there from `night`.
 - After Isha, the Fajr row is highlighted with "غدًا بعد …", which needs tomorrow in `days`. Without it, the row is highlighted but shows no remaining time.
 
 ### Platform constraints

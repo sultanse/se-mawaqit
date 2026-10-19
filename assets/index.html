@@ -44,6 +44,11 @@
         --sphere: #ffc874;
         --lit: 0.55;
       }
+      /* No fades until the first phase is painted, so the app opens in the
+         right sky instead of drifting there from night over 90 s. */
+      body.boot * {
+        transition: none !important;
+      }
       .sky {
         position: absolute;
         inset: 0;
@@ -162,8 +167,22 @@
         position: absolute;
         top: 5vw;
         right: 6vw;
+        /* Fixed width so the verse card can be wide; ends well clear of the
+           prayer panel (which stops at 38vw). */
+        width: 46vw;
         text-align: right;
         text-shadow: 0 0.2vw 1.5vw rgba(20, 40, 70, 0.3);
+      }
+      /* City on the right, weather on the left, lifted towards the top edge;
+         the clock below stays where it was. */
+      .head {
+        display: flex;
+        /* Weather sits on the same line as "الرياض" (first baseline), a fixed
+           gap to its left whatever the column width. */
+        align-items: baseline;
+        gap: 8.5vw;
+        /* Bottom margin collapses with the clock's 1.2vw top margin. */
+        margin: -2.6vw 0 3.8vw;
       }
       .place {
         font-size: 2.4vw;
@@ -193,7 +212,7 @@
       .clock {
         display: flex;
         justify-content: flex-end;
-        font-size: 13vw;
+        font-size: 9vw;
         font-weight: 300;
         line-height: 1;
         margin-top: 1.2vw;
@@ -210,8 +229,7 @@
         opacity: 0.92;
       }
       .weather {
-        margin-top: 2.2vw;
-        font-size: 2.4vw;
+        font-size: 1.9vw;
       }
       .status {
         margin-top: 1.6vw;
@@ -221,6 +239,37 @@
       .status:empty {
         display: none;
       }
+      /* Verse card under the dates; glass so it stays legible over the sky
+         and the skyline. */
+      .ayah {
+        margin-top: 2vw;
+        padding: 1.3vw 1.8vw 1.1vw;
+        border-radius: 1.6vw;
+        background: rgba(255, 255, 255, 0.14);
+        -webkit-backdrop-filter: blur(1vw);
+        backdrop-filter: blur(1vw);
+        border: 0.12vw solid rgba(255, 255, 255, 0.3);
+        text-shadow: none;
+        transition: opacity 1.2s ease;
+      }
+      body[data-phase="day"] .ayah {
+        background: rgba(28, 58, 92, 0.24);
+      }
+      .ayah.out {
+        opacity: 0;
+      }
+      .ayah-text {
+        font-family: "Noto Naskh Arabic", "Noto Sans Arabic", serif;
+        font-size: 2.05vw;
+        font-weight: 700;
+        line-height: 2;
+      }
+      .ayah-ref {
+        text-align: left;
+        font-size: 1.15vw;
+        opacity: 0.85;
+        margin-top: 0.4vw;
+      }
       .glass {
         position: absolute;
         top: 5vw;
@@ -229,8 +278,8 @@
         width: 33vw;
         border-radius: 2vw;
         background: rgba(255, 255, 255, 0.14);
-        backdrop-filter: blur(1vw);
         -webkit-backdrop-filter: blur(1vw);
+        backdrop-filter: blur(1vw);
         border: 0.12vw solid rgba(255, 255, 255, 0.3);
         padding: 2.2vw 2.4vw;
         display: flex;
@@ -251,10 +300,6 @@
         opacity: 0.75;
         margin-inline-end: 0.4vw;
       }
-      .prayer.minor:not(.active) {
-        font-size: 2.1vw;
-        opacity: 0.75;
-      }
       .prayer.active {
         background: rgba(255, 255, 255, 0.92);
         color: #23365e;
@@ -269,7 +314,7 @@
       }
     </style>
   </head>
-  <body data-phase="night">
+  <body data-phase="night" class="boot">
     <div class="sky night"></div>
     <div class="sky dawn"></div>
     <div class="sky day"></div>
@@ -292,15 +337,21 @@
       </g>
     </svg>
     <main class="info">
-      <div class="place">الرياض<small>المملكة العربية السعودية</small></div>
+      <div class="head">
+        <div class="place">الرياض<small>المملكة العربية السعودية</small></div>
+        <div class="weather">
+          <span id="weather-icon">☾</span>
+          <span class="num" id="temperature">--°</span>
+          <span id="weather">جارٍ تحديث الطقس</span>
+        </div>
+      </div>
       <div class="clock num" id="clock">--:--</div>
       <div class="dates"><span id="date"></span> · <span id="hijri"></span></div>
-      <div class="weather">
-        <span id="weather-icon">☾</span>
-        <span class="num" id="temperature">--°</span>
-        <span id="weather">جارٍ تحديث الطقس</span>
-      </div>
       <div class="status" id="status">جارٍ تحميل مواقيت الصلاة</div>
+      <div class="ayah" id="ayah">
+        <div class="ayah-text" id="ayah-text"></div>
+        <div class="ayah-ref" id="ayah-ref"></div>
+      </div>
     </main>
     <section class="glass" id="prayers"></section>
     <script>
@@ -495,6 +546,79 @@
         renderSky();
         renderPrayers();
         renderWeather();
+        renderAyah();
+      }
+      // Verses are stored verbatim (Hafs, Uthmani script, King Fahd Complex
+      // edition) from the Quranpedia.net dump, version 2026-10-19
+      // (https://quranpedia.net/dumps), and checked letter for letter against
+      // Tanzil. Do not edit the text. Listed in reading order so that
+      // consecutive verses (e.g. Al-Ikhlas 1–4) appear in sequence.
+      var VERSES = [
+          { s: 2, a: 45, name: "البقرة", text: "وَٱسۡتَعِينُواْ بِٱلصَّبۡرِ وَٱلصَّلَوٰةِۚ وَإِنَّهَا لَكَبِيرَةٌ إِلَّا عَلَى ٱلۡخَٰشِعِينَ" },
+          { s: 2, a: 152, name: "البقرة", text: "فَٱذۡكُرُونِيٓ أَذۡكُرۡكُمۡ وَٱشۡكُرُواْ لِي وَلَا تَكۡفُرُونِ" },
+          { s: 2, a: 153, name: "البقرة", text: "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُواْ ٱسۡتَعِينُواْ بِٱلصَّبۡرِ وَٱلصَّلَوٰةِۚ إِنَّ ٱللَّهَ مَعَ ٱلصَّٰبِرِينَ" },
+          { s: 2, a: 186, name: "البقرة", text: "وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌۖ أُجِيبُ دَعۡوَةَ ٱلدَّاعِ إِذَا دَعَانِۖ فَلۡيَسۡتَجِيبُواْ لِي وَلۡيُؤۡمِنُواْ بِي لَعَلَّهُمۡ يَرۡشُدُونَ" },
+          { s: 2, a: 201, name: "البقرة", text: "وَمِنۡهُم مَّن يَقُولُ رَبَّنَآ ءَاتِنَا فِي ٱلدُّنۡيَا حَسَنَةٗ وَفِي ٱلۡأٓخِرَةِ حَسَنَةٗ وَقِنَا عَذَابَ ٱلنَّارِ" },
+          { s: 2, a: 238, name: "البقرة", text: "حَٰفِظُواْ عَلَى ٱلصَّلَوَٰتِ وَٱلصَّلَوٰةِ ٱلۡوُسۡطَىٰ وَقُومُواْ لِلَّهِ قَٰنِتِينَ" },
+          { s: 3, a: 8, name: "آل عمران", text: "رَبَّنَا لَا تُزِغۡ قُلُوبَنَا بَعۡدَ إِذۡ هَدَيۡتَنَا وَهَبۡ لَنَا مِن لَّدُنكَ رَحۡمَةًۚ إِنَّكَ أَنتَ ٱلۡوَهَّابُ" },
+          { s: 3, a: 139, name: "آل عمران", text: "وَلَا تَهِنُواْ وَلَا تَحۡزَنُواْ وَأَنتُمُ ٱلۡأَعۡلَوۡنَ إِن كُنتُم مُّؤۡمِنِينَ" },
+          { s: 3, a: 173, name: "آل عمران", text: "ٱلَّذِينَ قَالَ لَهُمُ ٱلنَّاسُ إِنَّ ٱلنَّاسَ قَدۡ جَمَعُواْ لَكُمۡ فَٱخۡشَوۡهُمۡ فَزَادَهُمۡ إِيمَٰنٗا وَقَالُواْ حَسۡبُنَا ٱللَّهُ وَنِعۡمَ ٱلۡوَكِيلُ" },
+          { s: 3, a: 200, name: "آل عمران", text: "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُواْ ٱصۡبِرُواْ وَصَابِرُواْ وَرَابِطُواْ وَٱتَّقُواْ ٱللَّهَ لَعَلَّكُمۡ تُفۡلِحُونَ" },
+          { s: 6, a: 162, name: "الأنعام", text: "قُلۡ إِنَّ صَلَاتِي وَنُسُكِي وَمَحۡيَايَ وَمَمَاتِي لِلَّهِ رَبِّ ٱلۡعَٰلَمِينَ" },
+          { s: 6, a: 163, name: "الأنعام", text: "لَا شَرِيكَ لَهُۥۖ وَبِذَٰلِكَ أُمِرۡتُ وَأَنَا۠ أَوَّلُ ٱلۡمُسۡلِمِينَ" },
+          { s: 7, a: 23, name: "الأعراف", text: "قَالَا رَبَّنَا ظَلَمۡنَآ أَنفُسَنَا وَإِن لَّمۡ تَغۡفِرۡ لَنَا وَتَرۡحَمۡنَا لَنَكُونَنَّ مِنَ ٱلۡخَٰسِرِينَ" },
+          { s: 7, a: 56, name: "الأعراف", text: "وَلَا تُفۡسِدُواْ فِي ٱلۡأَرۡضِ بَعۡدَ إِصۡلَٰحِهَا وَٱدۡعُوهُ خَوۡفٗا وَطَمَعًاۚ إِنَّ رَحۡمَتَ ٱللَّهِ قَرِيبٞ مِّنَ ٱلۡمُحۡسِنِينَ" },
+          { s: 9, a: 51, name: "التوبة", text: "قُل لَّن يُصِيبَنَآ إِلَّا مَا كَتَبَ ٱللَّهُ لَنَا هُوَ مَوۡلَىٰنَاۚ وَعَلَى ٱللَّهِ فَلۡيَتَوَكَّلِ ٱلۡمُؤۡمِنُونَ" },
+          { s: 11, a: 114, name: "هود", text: "وَأَقِمِ ٱلصَّلَوٰةَ طَرَفَيِ ٱلنَّهَارِ وَزُلَفٗا مِّنَ ٱلَّيۡلِۚ إِنَّ ٱلۡحَسَنَٰتِ يُذۡهِبۡنَ ٱلسَّيِّــَٔاتِۚ ذَٰلِكَ ذِكۡرَىٰ لِلذَّٰكِرِينَ" },
+          { s: 13, a: 28, name: "الرعد", text: "ٱلَّذِينَ ءَامَنُواْ وَتَطۡمَئِنُّ قُلُوبُهُم بِذِكۡرِ ٱللَّهِۗ أَلَا بِذِكۡرِ ٱللَّهِ تَطۡمَئِنُّ ٱلۡقُلُوبُ" },
+          { s: 14, a: 7, name: "إبراهيم", text: "وَإِذۡ تَأَذَّنَ رَبُّكُمۡ لَئِن شَكَرۡتُمۡ لَأَزِيدَنَّكُمۡۖ وَلَئِن كَفَرۡتُمۡ إِنَّ عَذَابِي لَشَدِيدٞ" },
+          { s: 14, a: 40, name: "إبراهيم", text: "رَبِّ ٱجۡعَلۡنِي مُقِيمَ ٱلصَّلَوٰةِ وَمِن ذُرِّيَّتِيۚ رَبَّنَا وَتَقَبَّلۡ دُعَآءِ" },
+          { s: 14, a: 41, name: "إبراهيم", text: "رَبَّنَا ٱغۡفِرۡ لِي وَلِوَٰلِدَيَّ وَلِلۡمُؤۡمِنِينَ يَوۡمَ يَقُومُ ٱلۡحِسَابُ" },
+          { s: 15, a: 49, name: "الحجر", text: "۞ نَبِّئۡ عِبَادِيٓ أَنِّيٓ أَنَا ٱلۡغَفُورُ ٱلرَّحِيمُ" },
+          { s: 16, a: 128, name: "النحل", text: "إِنَّ ٱللَّهَ مَعَ ٱلَّذِينَ ٱتَّقَواْ وَّٱلَّذِينَ هُم مُّحۡسِنُونَ" },
+          { s: 17, a: 78, name: "الإسراء", text: "أَقِمِ ٱلصَّلَوٰةَ لِدُلُوكِ ٱلشَّمۡسِ إِلَىٰ غَسَقِ ٱلَّيۡلِ وَقُرۡءَانَ ٱلۡفَجۡرِۖ إِنَّ قُرۡءَانَ ٱلۡفَجۡرِ كَانَ مَشۡهُودٗا" },
+          { s: 18, a: 10, name: "الكهف", text: "إِذۡ أَوَى ٱلۡفِتۡيَةُ إِلَى ٱلۡكَهۡفِ فَقَالُواْ رَبَّنَآ ءَاتِنَا مِن لَّدُنكَ رَحۡمَةٗ وَهَيِّئۡ لَنَا مِنۡ أَمۡرِنَا رَشَدٗا" },
+          { s: 20, a: 14, name: "طه", text: "إِنَّنِيٓ أَنَا ٱللَّهُ لَآ إِلَٰهَ إِلَّآ أَنَا۠ فَٱعۡبُدۡنِي وَأَقِمِ ٱلصَّلَوٰةَ لِذِكۡرِيٓ" },
+          { s: 20, a: 25, name: "طه", text: "قَالَ رَبِّ ٱشۡرَحۡ لِي صَدۡرِي" },
+          { s: 20, a: 26, name: "طه", text: "وَيَسِّرۡ لِيٓ أَمۡرِي" },
+          { s: 20, a: 132, name: "طه", text: "وَأۡمُرۡ أَهۡلَكَ بِٱلصَّلَوٰةِ وَٱصۡطَبِرۡ عَلَيۡهَاۖ لَا نَسۡــَٔلُكَ رِزۡقٗاۖ نَّحۡنُ نَرۡزُقُكَۗ وَٱلۡعَٰقِبَةُ لِلتَّقۡوَىٰ" },
+          { s: 23, a: 1, name: "المؤمنون", text: "قَدۡ أَفۡلَحَ ٱلۡمُؤۡمِنُونَ" },
+          { s: 23, a: 2, name: "المؤمنون", text: "ٱلَّذِينَ هُمۡ فِي صَلَاتِهِمۡ خَٰشِعُونَ" },
+          { s: 25, a: 74, name: "الفرقان", text: "وَٱلَّذِينَ يَقُولُونَ رَبَّنَا هَبۡ لَنَا مِنۡ أَزۡوَٰجِنَا وَذُرِّيَّٰتِنَا قُرَّةَ أَعۡيُنٖ وَٱجۡعَلۡنَا لِلۡمُتَّقِينَ إِمَامًا" },
+          { s: 26, a: 80, name: "الشعراء", text: "وَإِذَا مَرِضۡتُ فَهُوَ يَشۡفِينِ" },
+          { s: 29, a: 45, name: "العنكبوت", text: "ٱتۡلُ مَآ أُوحِيَ إِلَيۡكَ مِنَ ٱلۡكِتَٰبِ وَأَقِمِ ٱلصَّلَوٰةَۖ إِنَّ ٱلصَّلَوٰةَ تَنۡهَىٰ عَنِ ٱلۡفَحۡشَآءِ وَٱلۡمُنكَرِۗ وَلَذِكۡرُ ٱللَّهِ أَكۡبَرُۗ وَٱللَّهُ يَعۡلَمُ مَا تَصۡنَعُونَ" },
+          { s: 33, a: 41, name: "الأحزاب", text: "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُواْ ٱذۡكُرُواْ ٱللَّهَ ذِكۡرٗا كَثِيرٗا" },
+          { s: 33, a: 42, name: "الأحزاب", text: "وَسَبِّحُوهُ بُكۡرَةٗ وَأَصِيلًا" },
+          { s: 39, a: 53, name: "الزمر", text: "۞ قُلۡ يَٰعِبَادِيَ ٱلَّذِينَ أَسۡرَفُواْ عَلَىٰٓ أَنفُسِهِمۡ لَا تَقۡنَطُواْ مِن رَّحۡمَةِ ٱللَّهِۚ إِنَّ ٱللَّهَ يَغۡفِرُ ٱلذُّنُوبَ جَمِيعًاۚ إِنَّهُۥ هُوَ ٱلۡغَفُورُ ٱلرَّحِيمُ" },
+          { s: 40, a: 60, name: "غافر", text: "وَقَالَ رَبُّكُمُ ٱدۡعُونِيٓ أَسۡتَجِبۡ لَكُمۡۚ إِنَّ ٱلَّذِينَ يَسۡتَكۡبِرُونَ عَنۡ عِبَادَتِي سَيَدۡخُلُونَ جَهَنَّمَ دَاخِرِينَ" },
+          { s: 47, a: 7, name: "محمد", text: "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓاْ إِن تَنصُرُواْ ٱللَّهَ يَنصُرۡكُمۡ وَيُثَبِّتۡ أَقۡدَامَكُمۡ" },
+          { s: 50, a: 16, name: "ق", text: "وَلَقَدۡ خَلَقۡنَا ٱلۡإِنسَٰنَ وَنَعۡلَمُ مَا تُوَسۡوِسُ بِهِۦ نَفۡسُهُۥۖ وَنَحۡنُ أَقۡرَبُ إِلَيۡهِ مِنۡ حَبۡلِ ٱلۡوَرِيدِ" },
+          { s: 51, a: 56, name: "الذاريات", text: "وَمَا خَلَقۡتُ ٱلۡجِنَّ وَٱلۡإِنسَ إِلَّا لِيَعۡبُدُونِ" },
+          { s: 62, a: 9, name: "الجمعة", text: "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓاْ إِذَا نُودِيَ لِلصَّلَوٰةِ مِن يَوۡمِ ٱلۡجُمُعَةِ فَٱسۡعَوۡاْ إِلَىٰ ذِكۡرِ ٱللَّهِ وَذَرُواْ ٱلۡبَيۡعَۚ ذَٰلِكُمۡ خَيۡرٞ لَّكُمۡ إِن كُنتُمۡ تَعۡلَمُونَ" },
+          { s: 65, a: 3, name: "الطلاق", text: "وَيَرۡزُقۡهُ مِنۡ حَيۡثُ لَا يَحۡتَسِبُۚ وَمَن يَتَوَكَّلۡ عَلَى ٱللَّهِ فَهُوَ حَسۡبُهُۥٓۚ إِنَّ ٱللَّهَ بَٰلِغُ أَمۡرِهِۦۚ قَدۡ جَعَلَ ٱللَّهُ لِكُلِّ شَيۡءٖ قَدۡرٗا" },
+          { s: 70, a: 23, name: "المعارج", text: "ٱلَّذِينَ هُمۡ عَلَىٰ صَلَاتِهِمۡ دَآئِمُونَ" },
+    
+        ],
+        AYAH_PERIOD = 2 * 60 * 1000,
+        shownAyah = -1;
+      // The verse is chosen from the clock, so it changes every two minutes
+      // and survives restarts without repeating from the start.
+      function renderAyah() {
+        var i = Math.floor(Date.now() / AYAH_PERIOD) % VERSES.length,
+          box = $("ayah");
+        if (i === shownAyah) return;
+        var first = shownAyah < 0,
+          show = function () {
+            var v = VERSES[i];
+            // No ﴿ ﴾ brackets: the TV's Noto font draws them as plain braces.
+            $("ayah-text").textContent = v.text;
+            $("ayah-ref").textContent = "سورة " + v.name + " · " + v.a;
+            box.classList.remove("out");
+          };
+        shownAyah = i;
+        if (first) return show();
+        box.classList.add("out");
+        setTimeout(show, 1200);
       }
       function renderPrayers() {
         var parts = new Intl.DateTimeFormat("en-GB", {
@@ -529,7 +653,6 @@
           }
           html +=
             '<div class="prayer' +
-            (item[0] === "Sunrise" ? " minor" : "") +
             (i === active ? " active" : "") +
             '"><span>' +
             item[1] +
@@ -621,6 +744,9 @@
       };
       renderClock();
       setInterval(renderClock, 1000);
+      setTimeout(function () {
+        document.body.classList.remove("boot");
+      }, 1000);
     </script>
   </body>
 </html>
