@@ -21,7 +21,10 @@ import java.util.concurrent.Executors;
 
 final class Dashboard {
     private static final String LATITUDE = "24.7136", LONGITUDE = "46.6753";
-    private static final long PRAYER_CACHE_AGE = 48 * 3600000L, WEATHER_CACHE_AGE = 3 * 3600000L;
+    // Prayers cover today + 7 days and weather carries a 3-day hourly forecast, so the
+    // cache keeps the screen full through an outage; JS drops whatever has gone stale.
+    private static final int PRAYER_DAYS = 7;
+    private static final long PRAYER_CACHE_AGE = PRAYER_DAYS * 24 * 3600000L, WEATHER_CACHE_AGE = 48 * 3600000L;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final SharedPreferences cache;
@@ -33,7 +36,7 @@ final class Dashboard {
         @Override public void run() {
             if (closed) return;
             String today = date(0);
-            if (!today.equals(lastDate) || tick % 60 == 0) { lastDate = today; fetchPrayer("prayers", today); fetchPrayer("tomorrow", date(1)); }
+            if (!today.equals(lastDate) || tick % 60 == 0) { lastDate = today; fetchPrayers(today, date(PRAYER_DAYS)); }
             if (tick % 15 == 0) fetchWeather();
             tick++;
             main.postDelayed(this, 60000);
@@ -53,7 +56,6 @@ final class Dashboard {
                 if (closed || started) return;
                 started = true;
                 replay("prayers", PRAYER_CACHE_AGE);
-                replay("tomorrow", PRAYER_CACHE_AGE);
                 replay("weather", WEATHER_CACHE_AGE);
                 main.post(refresh);
             }
@@ -69,11 +71,11 @@ final class Dashboard {
         calendar.add(Calendar.DAY_OF_MONTH, dayOffset);
         return format.format(calendar.getTime());
     }
-    private void fetchPrayer(String kind, String date) {
-        request(kind, "https://api.aladhan.com/v1/timings/" + date + "?latitude=" + LATITUDE + "&longitude=" + LONGITUDE + "&method=4&timezonestring=Asia%2FRiyadh");
+    private void fetchPrayers(String from, String to) {
+        request("prayers", "https://api.aladhan.com/v1/calendar/from/" + from + "/to/" + to + "?latitude=" + LATITUDE + "&longitude=" + LONGITUDE + "&method=4&timezonestring=Asia%2FRiyadh");
     }
     private void fetchWeather() {
-        request("weather", "https://api.open-meteo.com/v1/forecast?latitude=" + LATITUDE + "&longitude=" + LONGITUDE + "&current=temperature_2m,weather_code&timezone=Asia%2FRiyadh");
+        request("weather", "https://api.open-meteo.com/v1/forecast?latitude=" + LATITUDE + "&longitude=" + LONGITUDE + "&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&forecast_days=3&timezone=Asia%2FRiyadh");
     }
     private void replay(String kind, long maxAge) {
         String payload = cache.getString(kind, null);
