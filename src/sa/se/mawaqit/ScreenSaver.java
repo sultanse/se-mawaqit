@@ -1,4 +1,4 @@
-package sa.riyadh.screen;
+package sa.se.mawaqit;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -8,10 +8,10 @@ import android.provider.Settings;
  * Switches the system screensaver between Dream and whatever was set before.
  * Google TV doesn't list third-party screensavers in Settings, so the app writes
  * the setting itself. That needs WRITE_SECURE_SETTINGS, granted once over adb:
- * adb shell pm grant sa.riyadh.screen android.permission.WRITE_SECURE_SETTINGS
+ * adb shell pm grant sa.se.mawaqit android.permission.WRITE_SECURE_SETTINGS
  */
 final class ScreenSaver {
-    private static final String COMPONENTS = "screensaver_components", OURS = "sa.riyadh.screen/.Dream";
+    private static final String COMPONENTS = "screensaver_components", OURS = "sa.se.mawaqit/.Dream";
     private ScreenSaver() {}
     static boolean active(Context context) {
         return OURS.equals(Settings.Secure.getString(context.getContentResolver(), COMPONENTS));

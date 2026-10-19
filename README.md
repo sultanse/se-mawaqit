@@ -26,7 +26,7 @@ The app opens from the TV launcher. Press **OK** on the remote to open the setti
 Google TV doesn't list third-party screensavers in Settings, so the app sets it directly. That needs a one-time permission per TV, granted over adb:
 
 ```sh
-adb shell pm grant sa.riyadh.screen android.permission.WRITE_SECURE_SETTINGS
+adb shell pm grant sa.se.mawaqit android.permission.WRITE_SECURE_SETTINGS
 ```
 
 The grant survives app updates. Without it, choosing a screensaver only shows a reminder to grant it.
@@ -44,12 +44,12 @@ The last prayer times (a week ahead) and weather forecast (three days ahead) are
 
 ## Repository layout
 
-This repo holds only the app's sources. The Gradle build and the signing key are kept outside it on purpose.
+This repo holds only the app's sources. The build and the signing key are kept outside it on purpose.
 
 | Path | Contents |
 | --- | --- |
-| `AndroidManifest.xml` | Package `sa.riyadh.screen`, min SDK 23, target SDK 36 |
-| `src/sa/riyadh/screen/` | The Java shell: launcher activity, screensaver, WebView host, city list |
+| `AndroidManifest.xml` | Package `sa.se.mawaqit`, min SDK 23, target SDK 36 |
+| `src/sa/se/mawaqit/` | The Java shell: launcher activity, screensaver, WebView host, city list |
 | `assets/index.html` | The whole screen: one self-contained HTML file with no external resources |
 | `res/drawable-nodpi/` | App icon and TV banner |
 
@@ -62,5 +62,3 @@ Prayer times and weather appear only when you push data in from the devtools con
 ```js
 setData("prayers", JSON.stringify(aladhanResponse))
 ```
-
-See [CLAUDE.md](CLAUDE.md) for the architecture, the Java-to-page bridge, the refresh schedule and the rules that keep both sides in sync.

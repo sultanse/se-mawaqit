@@ -1,4 +1,4 @@
-package sa.riyadh.screen;
+package sa.se.mawaqit;
 
 import android.content.Context;
 import android.content.SharedPreferences;

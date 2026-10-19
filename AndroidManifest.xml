@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="sa.riyadh.screen">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="sa.se.mawaqit">
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Granted once over adb; lets the app switch the system screensaver (see ScreenSaver). -->
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
