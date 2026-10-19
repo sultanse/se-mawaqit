@@ -19,7 +19,10 @@ This folder holds only the editable sources. There is no Gradle project, build s
 
 Two layers, joined by a one-way JavaScript bridge:
 
-- **Java shell** (`src/sa/riyadh/screen/`). `Preview` is the launcher activity (it appears in both `LEANBACK_LAUNCHER` and `LAUNCHER`). It goes immersive full-screen and hosts `Dashboard`. `Dashboard` owns the `WebView`, loads `file:///android_asset/index.html`, and **does all network I/O** on a single-thread executor. The page never fetches anything itself.
+- **Java shell** (`src/sa/riyadh/screen/`). `Preview` is the launcher activity (it appears in both `LEANBACK_LAUNCHER` and `LAUNCHER`). It goes immersive full-screen and hosts `Dashboard`. `Dream` (a `DreamService`) hosts the same `Dashboard` as the TV screensaver.
+  - Pressing OK on the remote in `Preview` opens a dialog that switches the system screensaver between `Dream` and the previous one, through `ScreenSaver`. The previous one is remembered in `SharedPreferences("screensaver")`, and falls back to `screensaver_default_component`.
+  - Google TV doesn't list third-party screensavers in Settings, which is why the app writes `screensaver_components` itself.
+- `Dashboard` owns the `WebView`, loads `file:///android_asset/index.html`, and **does all network I/O** on a single-thread executor. The page never fetches anything itself.
 - **Web UI** (`assets/index.html`). A single self-contained file: inline CSS, an inline SVG Riyadh skyline (Kingdom Centre and Al Faisaliah), and a plain ES5-style script, with no external resources or fonts. The layout has two parts. On the right is a fixed-width (46vw) column. It has a `.head` row with the city and the weather to its left, then the clock, the dates, a glass verse card (`#ayah`), and a `#status` line that shows only when there's a problem. On the left is a glass panel (`#prayers`) listing the five prayers vertically, with Sunrise (الشروق) as a row between Fajr and Dhuhr, styled the same as the others. The next entry, which can be Sunrise, is highlighted with the remaining time from `remainingText()`. The page renders the clock and re-renders the prayer list every second.
 
 ### Bridge contract (Java → JS)
@@ -66,6 +69,10 @@ Every successful response is saved in `SharedPreferences("cache")` under its `ki
 
 ### Platform constraints
 
-- `minSdkVersion 23`, `targetSdkVersion 36`. The external build config must use `compileSdk` ≥ 36. If it is Gradle-based, its `targetSdk` overrides the one in the manifest. The Java uses lambdas and try-with-resources, so it needs Java 8 source level. The only permission is `INTERNET`, and `usesCleartextTraffic="false"`, so every endpoint must be HTTPS.
+- `minSdkVersion 23`, `targetSdkVersion 36`. The external build config must use `compileSdk` ≥ 36. If it is Gradle-based, its `targetSdk` overrides the one in the manifest. The Java uses lambdas and try-with-resources, so it needs Java 8 source level. The permissions are:
+  - `INTERNET`. `usesCleartextTraffic="false"`, so every endpoint must be HTTPS.
+  - `WRITE_SECURE_SETTINGS`. It can't be granted at install time, so grant it once per device with `adb shell pm grant sa.riyadh.screen android.permission.WRITE_SECURE_SETTINGS`. The grant survives app updates. Without it, the screensaver dialog just shows a toast asking for the grant.
+
+  `supportsRtl="true"`, so the dialog can be forced to RTL even when the TV's system language is English.
 - The WebView has JavaScript and file access enabled and content access disabled. There is no `addJavascriptInterface`, so JS cannot call into Java.
 - UI text is Arabic. Numbers stay in Latin digits on purpose (the `-nu-latn` locale extension; `ar()` returns `String(n)` unchanged). Time strings are built with `direction: ltr` inside the RTL layout, and `formatTime(value, true)` puts the ص/م period marker first in the markup. Its containers (`.clock`, `.prayer > .num`) must stay flex. As plain inline text, the bidi algorithm moves the Arabic marker to the right of the digits.
