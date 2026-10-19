@@ -1,9 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="sa.riyadh.screen">
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Granted once over adb; lets the app switch the system screensaver (see ScreenSaver). -->
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-sdk android:minSdkVersion="23" android:targetSdkVersion="36" />
-    <application android:label="مواقيت" android:icon="@drawable/icon" android:banner="@drawable/banner" android:usesCleartextTraffic="false" android:theme="@android:style/Theme.Material.NoActionBar">
+    <application android:label="مواقيت" android:icon="@drawable/icon" android:banner="@drawable/banner" android:usesCleartextTraffic="false" android:supportsRtl="true" android:theme="@android:style/Theme.Material.NoActionBar">
         <activity android:name=".Preview" android:exported="true" android:label="مواقيت">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -14,5 +16,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name=".Dream" android:exported="true" android:label="مواقيت" android:permission="android.permission.BIND_DREAM_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>
