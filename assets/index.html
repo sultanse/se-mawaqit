@@ -163,6 +163,20 @@
         fill: #ffcf7a;
         opacity: var(--lit);
       }
+      /* One skyline at a time; applyPlace() sets body.makkah. */
+      .city .makkah,
+      body.makkah .city .riyadh {
+        display: none;
+      }
+      body.makkah .city .makkah {
+        display: inline;
+      }
+      /* Makkah's shapes overlap (towers on the podium) and have no holes, so
+         fill their union once; evenodd would cut holes, and separate paths
+         would stack the translucent daytime fill. */
+      .city .makkah .near {
+        fill-rule: nonzero;
+      }
       .info {
         position: absolute;
         top: 5vw;
@@ -264,6 +278,66 @@
         font-weight: 700;
         line-height: 2;
       }
+      /* Settings menu (OK on the remote), drawn here and driven by Preview.java
+         through window.showMenu(). Same glass as the prayer panel. */
+      .menu {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(5, 10, 25, 0.35);
+      }
+      .menu.open {
+        display: flex;
+      }
+      .menu-panel {
+        width: 30vw;
+        max-height: 44vw;
+        display: flex;
+        flex-direction: column;
+        padding: 1.6vw;
+        border-radius: 2vw;
+        background: rgba(20, 30, 55, 0.55);
+        -webkit-backdrop-filter: blur(1.4vw);
+        backdrop-filter: blur(1.4vw);
+        border: 0.12vw solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 1vw 4vw rgba(0, 0, 0, 0.35);
+      }
+      .menu-title {
+        font-size: 2vw;
+        font-weight: 700;
+        padding: 0.2vw 1.2vw 1vw;
+      }
+      .menu-items {
+        position: relative;
+        overflow: hidden;
+      }
+      .menu-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1.7vw;
+        padding: 0.8vw 1.2vw;
+        border-radius: 1.2vw;
+      }
+      .menu-item.focus {
+        background: rgba(255, 255, 255, 0.92);
+        color: #23365e;
+        font-weight: 700;
+      }
+      .menu-item .mark {
+        width: 1.1vw;
+        height: 1.1vw;
+        border-radius: 50%;
+        border: 0.15vw solid currentColor;
+        opacity: 0.6;
+      }
+      .menu-item.checked .mark {
+        background: #e0a54a;
+        border-color: #e0a54a;
+        opacity: 1;
+      }
       .ayah-ref {
         text-align: left;
         font-size: 1.15vw;
@@ -322,9 +396,23 @@
     <div class="stars"></div>
     <div class="sun"></div>
     <div class="moon"></div>
-    <!-- Riyadh: Kingdom Centre (x≈110) and Al Faisaliah (x≈135). The viewBox is
-         stretched to the 100vw × 19vw strip, so the sphere is an ellipse. -->
+    <!-- The viewBox is stretched to the 100vw × 19vw strip, so circles are drawn
+         as ellipses. Riyadh: Kingdom Centre (x≈110) and Al Faisaliah (x≈135).
+         Every other city gets Makkah: mountains, the Clock Tower in the empty
+         middle (x≈70) and four Haram minarets. -->
     <svg class="city" viewBox="0 0 160 40" preserveAspectRatio="none" aria-hidden="true">
+      <g class="makkah">
+        <path class="far" d="M0 40V26Q8 18 16 24T32 22Q40 15 48 21T64 20Q72 14 82 21T100 22Q110 16 120 23T140 21Q150 17 160 24V40z" />
+        <path class="near" d="M0 40V32h4V33h3V30h3V32h3V34h4V30h3V33h6V30h4V30h6V30h3V31h3V34h6V30h4V30h4V32h3V40z M81 40V31h3V34h5V34h4V30h4V32h3V34h3V34h3V34h4V33h6V32h6V34h6V32h5V31h4V35h4V30h5V34h6V32h6V32h2V40z M58 40V33h3v7z M79 40V33h3v7z M60 40V29h20v11z M61.5 40V18l2-1.5 2 1.5V40z M74.5 40V16l2-1.5 2 1.5V40z M66 40V12h.6V5.6h6.8V12H74V40z M67.6 5.6L70 .4L72.4 5.6z M83.55 40V22.8H83.1V22H83.55V14.5L84 11.6L84.45 14.5V22H84.9V22.8H84.45V40z M87.05 40V22.8H86.6V22H87.05V14.5L87.5 11.6L87.95 14.5V22H88.4V22.8H87.95V40z M90.55 40V22.8H90.1V22H90.55V14.5L91 11.6L91.45 14.5V22H91.9V22.8H91.45V40z M94.05 40V22.8H93.6V22H94.05V14.5L94.5 11.6L94.95 14.5V22H95.4V22.8H94.95V40z" />
+        <ellipse class="sphere" cx="70" cy="8.6" rx="2.3" ry="2.9" />
+        <g class="lit">
+          <rect x="12" y="34" width=".7" height=".9" /><rect x="33" y="32" width=".7" height=".9" /><rect x="50" y="33" width=".7" height=".9" />
+          <rect x="63" y="22" width=".6" height=".8" /><rect x="68" y="16" width=".6" height=".8" /><rect x="71.4" y="20" width=".6" height=".8" />
+          <rect x="69" y="26" width=".6" height=".8" /><rect x="76.5" y="24" width=".6" height=".8" /><rect x="103" y="35" width=".7" height=".9" />
+          <rect x="128" y="36" width=".7" height=".9" /><rect x="150" y="35" width=".7" height=".9" />
+        </g>
+      </g>
+      <g class="riyadh">
       <path class="far" d="M0 40V30h6v-4h7v3h6v-6h5v4h8v-7h6v5h7v-3h6v6h5v-8h7v4h6v-2h8v5h6v-6h7v3h5v-4h8v6h6v-5h7v2h6v-7h5v5h8v-3h6v4h7v-6h6v5h5v-3h7v6h6v-4h8v5h5v-3h7V40z" />
       <path class="near" d="M0 40V33h5v-3h6v4h4v-6h5v2h7v-5h5v4h6v3h4v-7h6v5h5v-2h6v4h5v-6h4v3h7v-5h5v6h6v3h4v-4h6v6h5V40z M105 40L106.4 12Q110.5 1 114.6 12L116 40z M108.2 15.5Q110.5 6 112.8 15.5z M119 40v-9h5v-3h5v12z M131 40L134 18L135.4 9.5L136.8 18L139.8 40z M142 40v-11h5v4h5v-7h6v3h2V40z" />
       <ellipse class="sphere" cx="135.4" cy="17.5" rx="1.7" ry="2.24" />
@@ -335,10 +423,11 @@
         <rect x="134.6" y="27" width=".6" height=".8" /><rect x="136.2" y="32" width=".6" height=".8" /><rect x="145" y="33" width=".7" height=".9" />
         <rect x="155" y="31" width=".7" height=".9" />
       </g>
+      </g>
     </svg>
     <main class="info">
       <div class="head">
-        <div class="place">الرياض<small>المملكة العربية السعودية</small></div>
+        <div class="place"><span id="city">الرياض</span><small>المملكة العربية السعودية</small></div>
         <div class="weather">
           <span id="weather-icon">☾</span>
           <span class="num" id="temperature">--°</span>
@@ -354,6 +443,12 @@
       </div>
     </main>
     <section class="glass" id="prayers"></section>
+    <div class="menu" id="menu">
+      <div class="menu-panel">
+        <div class="menu-title" id="menu-title"></div>
+        <div class="menu-items" id="menu-items"></div>
+      </div>
+    </div>
     <script>
       var names = [
           ["Fajr", "الفجر"],
@@ -371,9 +466,11 @@
         prayersFailed = false,
         weather = null,
         weatherFailed = false;
-      // Android passes the coordinates; the defaults only serve a browser preview.
+      // Android passes the city and its coordinates (and later setData("place")
+      // when it changes); the defaults only serve a browser preview.
       var query = new URLSearchParams(location.search),
         place = {
+          city: query.get("city") || "الرياض",
           lat: +query.get("lat") || 24.7136,
           lon: +query.get("lon") || 46.6753,
         };
@@ -715,6 +812,17 @@
             if (typeof d.current.temperature_2m !== "number") throw Error();
             weather = d;
             renderWeather();
+          } else if (kind === "place") {
+            // A new city: everything shown so far belongs to the old one.
+            if (!d.name || typeof d.lat !== "number") throw Error();
+            place = { city: d.name, lat: d.lat, lon: d.lon };
+            days = {};
+            weather = null;
+            prayersFailed = weatherFailed = false;
+            $("temperature").textContent = "--°";
+            $("weather").textContent = "جارٍ تحديث الطقس";
+            applyPlace();
+            renderClock();
           } else {
             // A week from the range endpoint, or a single day from older caches.
             var list = [].concat(d.data),
@@ -742,6 +850,40 @@
           renderPrayers();
         }
       };
+      // Settings menu state from Preview.java: {title, items, focus, checked},
+      // or null to hide it. checked is -1 for a level with no current choice.
+      window.showMenu = function (m) {
+        var box = $("menu"),
+          list = $("menu-items");
+        if (!m) return box.classList.remove("open");
+        $("menu-title").textContent = m.title;
+        list.innerHTML = "";
+        m.items.forEach(function (text, i) {
+          var row = document.createElement("div"),
+            label = document.createElement("span");
+          row.className =
+            "menu-item" + (i === m.focus ? " focus" : "") + (i === m.checked ? " checked" : "");
+          label.textContent = text;
+          row.appendChild(label);
+          if (m.checked >= 0) {
+            var mark = document.createElement("span");
+            mark.className = "mark";
+            row.appendChild(mark);
+          }
+          list.appendChild(row);
+        });
+        box.classList.add("open");
+        // Keep the focused row in the middle of long lists (the cities).
+        var row = list.children[m.focus];
+        list.scrollTop = Math.max(0, row.offsetTop - list.clientHeight / 2 + row.offsetHeight / 2);
+      };
+      // City name, and the skyline: Riyadh's own, Makkah's for every other city.
+      function applyPlace() {
+        $("city").textContent = place.city;
+        document.title = place.city;
+        document.body.classList.toggle("makkah", place.city !== "الرياض");
+      }
+      applyPlace();
       renderClock();
       setInterval(renderClock, 1000);
       setTimeout(function () {
