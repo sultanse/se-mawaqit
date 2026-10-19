@@ -1,0 +1,13 @@
+# Signing keys and build output are kept outside this repo on purpose.
+*.jks
+*.keystore
+*.apk
+*.aab
+*.idsig
+build/
+.gradle/
+local.properties
+
+.DS_Store
+.idea/
+.vscode/

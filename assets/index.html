@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>الرياض</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #e9e6da;
+        --muted: #aabfc1;
+        --gold: #edc98b;
+        --line: rgba(207, 223, 219, 0.2);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      body {
+        font-family: "Noto Naskh Arabic", "Noto Sans Arabic", sans-serif;
+        color: var(--ink);
+        background: #142d35;
+      }
+      .sky {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse at 72% 88%,
+            rgba(100, 76, 91, 0.38),
+            transparent 42%
+          ),
+          linear-gradient(165deg, #071221 0%, #142b43 55%, #263646 100%);
+      }
+      .moon {
+        position: absolute;
+        left: 13%;
+        top: 12%;
+        width: 7vh;
+        height: 7vh;
+        border-radius: 50%;
+        background: transparent;
+        box-shadow:
+          inset 1.8vh -0.5vh 0 0.1vh #f4dfb4,
+          0 0 5vh #d9ae7533;
+        opacity: 0.98;
+      }
+      .stars {
+        position: absolute;
+        inset: 0;
+        background-image:
+          radial-gradient(1.5px 1.5px at 12% 18%, #fff5d7 98%, transparent),
+          radial-gradient(1px 1px at 35% 32%, #fff 98%, transparent),
+          radial-gradient(1.5px 1.5px at 61% 12%, #d2e2ff 98%, transparent),
+          radial-gradient(1px 1px at 82% 39%, #fff2d6 98%, transparent),
+          radial-gradient(1px 1px at 16% 60%, #d6e7ff 98%, transparent),
+          radial-gradient(1.5px 1.5px at 72% 71%, #f9edcf 98%, transparent),
+          radial-gradient(1px 1px at 48% 58%, #fff 98%, transparent);
+        background-size:
+          310px 210px,
+          260px 240px,
+          410px 300px,
+          330px 270px,
+          390px 250px,
+          470px 340px,
+          360px 310px;
+        opacity: 0.7;
+      }
+      .day-sky {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse at 73% 84%,
+            rgba(245, 194, 119, 0.48),
+            transparent 42%
+          ),
+          linear-gradient(160deg, #224956 0%, #37737c 54%, #9d8e6c 100%);
+        opacity: 0;
+        transition: opacity 8s ease;
+      }
+      .moon,
+      .stars {
+        transition:
+          opacity 8s ease,
+          background-color 8s ease,
+          box-shadow 8s ease;
+      }
+      body.day .day-sky {
+        opacity: 1;
+      }
+      body.day .stars {
+        opacity: 0;
+      }
+      body.day .moon {
+        background: #ffe2a2;
+        box-shadow: 0 0 7vh #ffe2a299;
+      }
+      .horizon {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 43%;
+        opacity: 0.66;
+      }
+      .frame {
+        position: absolute;
+        inset: 7% 6.5%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .city {
+        font-size: 3.2vh;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .sub {
+        font-size: 1.85vh;
+        color: var(--muted);
+        margin-top: 0.7vh;
+      }
+      .weather {
+        text-align: left;
+        direction: ltr;
+        display: flex;
+        align-items: center;
+        gap: 1.3vh;
+      }
+      .weather .sun {
+        font-size: 3.4vh;
+        color: var(--gold);
+      }
+      .temp {
+        font-size: 4.5vh;
+        font-weight: 400;
+        line-height: 1;
+      }
+      .wdesc {
+        font-size: 1.7vh;
+        color: #d8e0d9;
+        direction: rtl;
+        text-align: left;
+        margin-top: 0.7vh;
+      }
+      .hero {
+        margin-top: -1vh;
+      }
+      .clock {
+        display: flex;
+        justify-content: flex-end;
+        align-items: baseline;
+        font-size: 15vh;
+        font-weight: 500;
+        line-height: 1.04;
+        letter-spacing: -0.04em;
+        font-variant-numeric: tabular-nums;
+        direction: ltr;
+        text-align: right;
+      }
+      .clock .period {
+        font-size: 4vh;
+        letter-spacing: 0;
+        margin-right: 1vh;
+      }
+      .date {
+        font-size: 2.4vh;
+        color: #d6e3df;
+        margin-top: 1.7vh;
+      }
+      .hijri {
+        font-size: 2.3vh;
+        color: #d6e3df;
+        margin-top: 0.5vh;
+      }
+      .next {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        display: inline-block;
+        color: #15313a;
+        background: var(--gold);
+        border-radius: 2.5vh;
+        padding: 1vh 2.2vh;
+        font-size: 2.3vh;
+        font-weight: 700;
+        margin-top: 0;
+        text-align: center;
+      }
+      .remaining {
+        display: block;
+        margin-top: 0.4vh;
+      }
+      .countdown {
+        display: inline-block;
+        direction: ltr;
+        font-variant-numeric: tabular-nums;
+      }
+      .bottom {
+        padding-top: 2.2vh;
+      }
+      .bottom-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2vh;
+      }
+      .heading {
+        font-size: 2.5vh;
+        font-weight: 700;
+      }
+      .prayers {
+        display: flex;
+        direction: rtl;
+        gap: 1.1vw;
+      }
+      .prayer {
+        flex: 1;
+        padding: 1.5vh 1.6vw 1.4vh;
+        border-top: 2px solid rgba(223, 232, 220, 0.24);
+        background: rgba(11, 33, 40, 0.2);
+      }
+      .prayer.active {
+        border-color: var(--gold);
+        background: rgba(237, 201, 139, 0.14);
+      }
+      .name {
+        font-size: 2.8vh;
+        color: #cedad6;
+      }
+      .ptime {
+        display: flex;
+        justify-content: flex-end;
+        align-items: baseline;
+        direction: ltr;
+        text-align: right;
+        font-size: 6vh;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.25;
+        margin-top: 0.8vh;
+      }
+      .ptime .period {
+        font-size: 2.4vh;
+        margin-right: 0.5vh;
+      }
+      .status {
+        margin-top: 1.4vh;
+        font-size: 1.45vh;
+        color: #c1cfc9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sky"></div>
+    <div class="day-sky"></div>
+    <div class="stars"></div>
+    <div class="moon"></div>
+    <svg
+      class="horizon"
+      viewBox="0 0 1920 460"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        fill="#122c32"
+        d="M0 357h108v-24h53v-27h50v51h44v-36h45v-39h41v-68h24v-77h9v-42h12v42h10v77h23v68h34v75h53v-44h56v-29h47v32h46v-27h40v-96h40v-44h24v-50h12v50h25v44h38v100h46v-32h48v-24h42v56h53v-18h43v-48h52v-22h46v70h58V249h22v-46h25v-41h14v-39h9v39h14v41h25v46h24v107h55v-35h41v-30h48v59h49v-34h44v-67h34v-37h44v38h34v67h40v-31h48v-32h40v64h41v-42h42v-44h26v-30h16v30h25v44h35v42h41v-27h42v27h45V460H0z"
+      />
+      <path
+        fill="#1c3537"
+        d="M0 401c300-38 520-23 786 9 245 30 462-35 694-21 186 11 301 21 440 12v59H0z"
+      />
+    </svg>
+    <main class="frame">
+      <header class="top">
+        <div>
+          <div class="city">الرياض</div>
+          <div class="sub">المملكة العربية السعودية</div>
+        </div>
+        <div>
+          <div class="weather">
+            <span class="sun" id="weather-icon">☀</span
+            ><span class="temp" id="temperature">--°</span>
+          </div>
+          <div class="wdesc" id="weather">جارٍ تحديث الطقس</div>
+        </div>
+      </header>
+      <section class="hero">
+        <div class="clock" id="clock">--:--</div>
+        <div class="date" id="date"></div>
+        <div class="hijri" id="hijri"></div>
+        <div class="next" id="next">جارٍ تحميل مواقيت الصلاة</div>
+      </section>
+      <section class="bottom">
+        <div class="bottom-head">
+          <span class="heading">مواقيت الصلاة</span>
+        </div>
+        <div class="prayers" id="prayers"></div>
+        <div class="status" id="status">جارٍ تحديث المواقيت</div>
+      </section>
+    </main>
+    <script>
+      var names = [
+          ["Fajr", "الفجر"],
+          ["Dhuhr", "الظهر"],
+          ["Asr", "العصر"],
+          ["Maghrib", "المغرب"],
+          ["Isha", "العشاء"],
+        ],
+        times = null,
+        tomorrow = null,
+        prayerDate = "",
+        tomorrowDate = "",
+        lastWeather = 0;
+      // Android passes the coordinates; the defaults only serve a browser preview.
+      var query = new URLSearchParams(location.search),
+        place = {
+          lat: +query.get("lat") || 24.7136,
+          lon: +query.get("lon") || 46.6753,
+        };
+      var $ = function (id) {
+          return document.getElementById(id);
+        },
+        ar = function (n) {
+          return String(n);
+        };
+      function formatTime(value, periodFirst) {
+        var p = value && value.match(/^(\d\d):(\d\d)/);
+        if (!p) return "--:--";
+        var hour = +p[1],
+          display = hour % 12 || 12,
+          number = String(display).padStart(2, "0") + ":" + p[2],
+          period =
+            '<span class="period">' + (hour < 12 ? "ص" : "م") + "</span>";
+        return periodFirst ? period + number : number + period;
+      }
+      function dayKey(offset) {
+        return new Intl.DateTimeFormat("en-GB", {
+          timeZone: "Asia/Riyadh",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        })
+          .format(new Date(Date.now() + offset * 86400000))
+          .replace(/\//g, "-");
+      }
+      function prayerSeconds(value) {
+        var p = value && value.match(/^(\d\d):(\d\d)/);
+        return p ? +p[1] * 3600 + +p[2] * 60 : null;
+      }
+      function solarTimes() {
+        var date = dayKey(0).split("-"),
+          year = +date[2],
+          month = +date[1],
+          day = +date[0],
+          n =
+            (Date.UTC(year, month - 1, day) - Date.UTC(year, 0, 0)) / 86400000,
+          gamma = ((2 * Math.PI) / 365) * (n - 1),
+          eq =
+            229.18 *
+            (0.000075 +
+              0.001868 * Math.cos(gamma) -
+              0.032077 * Math.sin(gamma) -
+              0.014615 * Math.cos(2 * gamma) -
+              0.040849 * Math.sin(2 * gamma)),
+          decl =
+            0.006918 -
+            0.399912 * Math.cos(gamma) +
+            0.070257 * Math.sin(gamma) -
+            0.006758 * Math.cos(2 * gamma) +
+            0.000907 * Math.sin(2 * gamma) -
+            0.002697 * Math.cos(3 * gamma) +
+            0.00148 * Math.sin(3 * gamma),
+          lat = (place.lat * Math.PI) / 180,
+          angle =
+            (Math.acos(
+              Math.cos((90.833 * Math.PI) / 180) /
+                (Math.cos(lat) * Math.cos(decl)) -
+                Math.tan(lat) * Math.tan(decl),
+            ) *
+              180) /
+            Math.PI,
+          noon = 720 - 4 * place.lon - eq + 180;
+        return {
+          sunrise: (noon - 4 * angle) * 60,
+          sunset: (noon + 4 * angle) * 60,
+        };
+      }
+      function renderSky() {
+        var parts = new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Asia/Riyadh",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+          })
+            .format(new Date())
+            .split(":"),
+          now = +parts[0] * 3600 + +parts[1] * 60 + +parts[2],
+          solar = solarTimes(),
+          sunrise =
+            times && prayerDate === dayKey(0)
+              ? prayerSeconds(times.Sunrise)
+              : null,
+          sunset =
+            times && prayerDate === dayKey(0)
+              ? prayerSeconds(times.Sunset)
+              : null;
+        if (sunrise === null || sunset === null || sunrise >= sunset) {
+          sunrise = solar.sunrise;
+          sunset = solar.sunset;
+        }
+        document.body.classList.toggle("day", now >= sunrise && now < sunset);
+        $("weather-icon").textContent =
+          now >= sunrise && now < sunset ? "☀" : "☾";
+      }
+      function nextPrayer(today, nextDay, now) {
+        if (!today) return null;
+        for (var i = 0; i < names.length; i++) {
+          var at = prayerSeconds(today[names[i][0]]);
+          if (at !== null && at > now)
+            return { index: i, remaining: at - now, name: names[i][1] };
+        }
+        var fajr = nextDay ? prayerSeconds(nextDay.Fajr) : null;
+        return fajr !== null
+          ? { index: -1, remaining: 86400 - now + fajr, name: "الفجر غدًا" }
+          : { index: -1, remaining: null, name: "الفجر غدًا" };
+      }
+      function countdown(seconds) {
+        var h = Math.floor(seconds / 3600),
+          m = Math.floor((seconds % 3600) / 60),
+          s = seconds % 60;
+        return [h, m, s]
+          .map(function (v) {
+            return String(v).padStart(2, "0");
+          })
+          .join(":");
+      }
+      function renderClock() {
+        var now = new Date();
+        $("clock").innerHTML = formatTime(
+          new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Asia/Riyadh",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }).format(now),
+          true,
+        );
+        $("date").textContent = new Intl.DateTimeFormat(
+          "ar-SA-u-ca-gregory-nu-latn",
+          {
+            timeZone: "Asia/Riyadh",
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          },
+        ).format(now);
+        $("hijri").textContent = new Intl.DateTimeFormat(
+          "ar-SA-u-ca-islamic-umalqura-nu-latn",
+          {
+            timeZone: "Asia/Riyadh",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          },
+        ).format(now);
+        if (prayerDate && prayerDate !== dayKey(0)) {
+          if (tomorrowDate === dayKey(0)) {
+            times = tomorrow;
+            prayerDate = tomorrowDate;
+          } else {
+            times = null;
+            prayerDate = "";
+            $("status").textContent = "بانتظار تحديث مواقيت اليوم";
+            $("next").textContent = "جارٍ تحديث مواقيت الصلاة";
+          }
+        }
+        renderSky();
+        renderPrayers();
+      }
+      function renderPrayers() {
+        var parts = new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Asia/Riyadh",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+          })
+            .format(new Date())
+            .split(":"),
+          seconds = +parts[0] * 3600 + +parts[1] * 60 + +parts[2],
+          selection = nextPrayer(
+            times,
+            tomorrowDate === dayKey(1) ? tomorrow : null,
+            seconds,
+          );
+        var html = "";
+        names.forEach(function (item, i) {
+          var t = times && times[item[0]];
+          html +=
+            '<div class="prayer ' +
+            (selection && i === selection.index ? "active" : "") +
+            '"><div class="name">' +
+            item[1] +
+            '</div><div class="ptime">' +
+            formatTime(t, true) +
+            "</div></div>";
+        });
+        $("prayers").innerHTML = html;
+        if (selection) {
+          $("next").innerHTML =
+            "الصلاة القادمة: " +
+            selection.name +
+            (selection.remaining === null
+              ? ""
+              : '<span class="remaining">متبقي <span class="countdown">' +
+                countdown(selection.remaining) +
+                "</span></span>");
+        }
+      }
+      function weatherName(code) {
+        if (code === 0) return "سماء صافية";
+        if (code <= 3) return "غائم جزئيًا";
+        if (code <= 48) return "ضباب";
+        if (code <= 67) return "أمطار";
+        if (code <= 77) return "ثلوج";
+        if (code <= 82) return "زخات مطر";
+        if (code <= 99) return "عواصف رعدية";
+        return "الطقس الآن";
+      }
+      window.setData = function (kind, raw) {
+        try {
+          var d = JSON.parse(raw);
+          if (kind === "weather") {
+            var cur = d.current;
+            if (typeof cur.temperature_2m !== "number") throw Error();
+            $("temperature").textContent =
+              ar(Math.round(cur.temperature_2m)) + "°";
+            $("weather").textContent = weatherName(cur.weather_code);
+            lastWeather = Date.now();
+          } else {
+            if (
+              !d.data ||
+              !d.data.timings ||
+              !d.data.date ||
+              !d.data.date.gregorian
+            )
+              throw Error();
+            var dataDate = d.data.date.gregorian.date;
+            if (
+              dataDate === dayKey(0) &&
+              (kind === "prayers" || !times)
+            ) {
+              times = d.data.timings;
+              prayerDate = dataDate;
+              $("status").textContent = "مواقيت محسوبة لمدينة الرياض";
+            } else if (kind === "tomorrow" && dataDate === dayKey(1)) {
+              tomorrow = d.data.timings;
+              tomorrowDate = dataDate;
+            }
+            renderPrayers();
+          }
+        } catch (e) {
+          window.setError(kind);
+        }
+      };
+      window.setError = function (kind) {
+        if (kind === "weather" && !lastWeather) {
+          $("weather").textContent = "الطقس غير متاح حاليًا";
+        }
+        if (kind === "prayers" && !times) {
+          $("next").textContent = "المواقيت غير متاحة حاليًا";
+          $("status").textContent = "تحقق من اتصال الإنترنت";
+        }
+      };
+      renderClock();
+      setInterval(renderClock, 1000);
+    </script>
+  </body>
+</html>
