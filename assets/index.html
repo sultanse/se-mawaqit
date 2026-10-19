@@ -587,8 +587,8 @@
         }
         var fajr = nextDay ? prayerSeconds(nextDay.Fajr) : null;
         return fajr !== null
-          ? { index: -1, remaining: 86400 - now + fajr, name: "الفجر غدًا" }
-          : { index: -1, remaining: null, name: "الفجر غدًا" };
+          ? { index: -1, remaining: 86400 - now + fajr, name: "الفجر" }
+          : { index: -1, remaining: null, name: "الفجر" };
       }
       // "بعد 37 دقيقة" under an hour, "بعد 6:55 ساعة" above it.
       function remainingText(seconds) {
@@ -744,7 +744,6 @@
           if (i === active && selection.remaining !== null) {
             left =
               '<span class="left">' +
-              (selection.index < 0 ? "غدًا " : "") +
               remainingText(selection.remaining) +
               "</span>";
           }

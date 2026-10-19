@@ -84,7 +84,7 @@ Every successful response is saved in `SharedPreferences("cache")` under its `ki
   - The verse index is `floor(Date.now() / AYAH_PERIOD) % length` (two minutes), so the list advances in order and survives restarts.
   - There are no ﴿ ﴾ brackets, because the TV's Noto font draws them as plain braces.
 - `<body class="boot">` disables every transition until a second after load, so the app opens in the correct phase instead of fading there from `night`.
-- After Isha, the Fajr row is highlighted with "غدًا بعد …", which needs tomorrow in `days`. Without it, the row is highlighted but shows no remaining time.
+- After Isha, the Fajr row is highlighted with the time left until tomorrow's Fajr ("بعد …"), which needs tomorrow in `days`. Without it, the row is highlighted but shows no remaining time.
 
 ### Platform constraints
 

@@ -9,7 +9,7 @@ An Android TV app that turns the screen into a full-screen prayer-times dashboar
 ## What it shows
 
 - The time, plus the Gregorian and Hijri dates.
-- The five prayers for today, with Sunrise (الشروق) between Fajr and Dhuhr. The next one is highlighted with a countdown. After Isha, Fajr shows "غدًا بعد …".
+- The five prayers for today, with Sunrise (الشروق) between Fajr and Dhuhr. The next one is highlighted with a countdown.
 - The current weather.
 - A short Quran verse that changes every two minutes. The text is the Hafs Uthmani text of the King Fahd Complex edition, checked letter for letter against Tanzil.
 - A sky that follows the real day: dawn, day, dusk and night, with the sun, moon and stars. The skyline is Riyadh for Riyadh and Makkah for every other city.
